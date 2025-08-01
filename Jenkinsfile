@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = 'your-docker-registry'
+        DOCKER_REGISTRY = 'sonalisinhawipro'
         APP_NAME = 'laravel-app'
         DOCKER_NETWORK = 'laravel-network'
     }

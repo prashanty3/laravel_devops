@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_REGISTRY = 'sonalisinhawipro'
         APP_NAME = 'laravel-app'
-        DOCKER_NETWORK = 'laravel-network'
+        DOCKER_NETWORK = 'laravel'
     }
 
     stages {
@@ -28,6 +28,18 @@ pipeline {
             }
         }
 
+        stage('Migrate Database') {
+            steps {
+                sh '''
+                docker-compose run --rm app php artisan config:clear
+                docker-compose run --rm app php artisan cache:clear
+                docker-compose run --rm app php artisan view:clear
+                docker-compose run --rm app php artisan route:clear
+                docker-compose run --rm app php artisan migrate --force
+                '''
+            }
+        }
+
         stage('Run Tests') {
             steps {
                 sh 'docker-compose run --rm app php artisan test'
@@ -37,8 +49,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    docker-compose down
-                    docker-compose up -d
+                docker-compose down
+                docker-compose up -d
                 '''
             }
         }

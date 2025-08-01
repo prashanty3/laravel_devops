@@ -1,10 +1,24 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_REGISTRY = 'sonalisinhawipro'
+        APP_NAME = 'laravel-app'
+        DOCKER_NETWORK = 'laravel'
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/your/repo.git'
+                git branch: 'main', url: 'https://github.com/prashanty3/laravel_devops.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${DOCKER_REGISTRY}/${APP_NAME}:${env.BUILD_ID}")
+                }
             }
         }
 

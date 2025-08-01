@@ -5,32 +5,24 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: laravel-app
-    container_name: app
-    restart: unless-stopped
+    container_name: laravel_app
     volumes:
       - .:/var/www
+      - ./.env:/var/www/.env              # Mount the .env file properly
+    ports:
+      - "8888:9000"                        # Host 8888 → Container 9000
+    environment:
+      - DB_HOST=34.121.54.220             # Cloud SQL public IP
+      - DB_PORT=3306
+      - DB_DATABASE=nandvanshi
+      - DB_USERNAME=root
+      - DB_PASSWORD=
+
+  composer:
+    image: composer:latest
+    container_name: composer
     working_dir: /var/www
-    depends_on:
-      - mysql
-    environment:
-      SERVICE_NAME: app
-      SERVICE_TAGS: dev
-    ports:
-      - "8888:8888"
-    command: php artisan serve --host=0.0.0.0 --port=8888
-
-  mysql:
-    image: mysql:5.7
-    container_name: mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: nandvanshi
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3306:3306"
     volumes:
-      - dbdata:/var/lib/mysql
+      - .:/var/www
 
-volumes:
-  dbdata:
+# Removed mysql container since Cloud SQL is being used

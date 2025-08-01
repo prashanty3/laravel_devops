@@ -1,42 +1,31 @@
-# Build stage
-FROM php:8.2-fpm as builder
+FROM php:8.2-fpm
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpng-dev \
-    libjpeg-dev \
-    libfreetype-dev \
-    libzip-dev \
     libonig-dev \
+    libxml2-dev \
+    zip \
     unzip \
-    git
+    git \
+    curl \
+    libzip-dev \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring zip exif gd
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-COPY --from=composer:2.5 /usr/bin/composer /usr/bin/composer
-
+# Set working directory
 WORKDIR /var/www
+
+# Copy existing application directory
 COPY . .
 
+# Install dependencies and optimize autoloader
 RUN composer install --no-dev --optimize-autoloader \
-    && chown -R www-data:www-data /var/www/storage \
-    && chmod -R 775 /var/www/storage
-
-# Production stage
-FROM php:8.2-fpm
-
-COPY --from=builder /var/www /var/www
-COPY --from=builder /usr/bin/composer /usr/bin/composer
-
-RUN apt-get update && apt-get install -y \
-    libfreetype6 \
-    libjpeg62-turbo \
-    libpng16-16 \
-    libzip4 \
-    && docker-php-ext-enable opcache
-
-WORKDIR /var/www
+    && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 9000
 CMD ["php-fpm"]

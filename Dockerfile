@@ -15,13 +15,23 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libcurl4-openssl-dev \
     libssl-dev \
-    && docker-php-ext-install pdo_mysql zip
+    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd
 
-# Install Composer globally
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy application
+# Add user for laravel application
+RUN groupadd -g 1000 www
+RUN useradd -u 1000 -ms /bin/bash -g www www
+
+# Copy existing application directory contents
 COPY . .
+
+# Copy existing application directory permissions
+COPY --chown=www:www . .
+
+# Change current user to www
+USER www
 
 EXPOSE 9000
 CMD ["php-fpm"]

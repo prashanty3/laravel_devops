@@ -14,6 +14,13 @@ pipeline {
             }
         }
 
+        stage('Setup Environment') {
+            steps {
+                sh 'cp .env.example .env || true'
+                sh 'chmod 644 .env'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -30,7 +37,7 @@ pipeline {
 
         stage('Generate Key') {
             steps {
-                sh 'docker-compose run --rm app php artisan key:generate'
+                sh 'docker-compose run --rm app php artisan key:generate --force'
             }
         }
 

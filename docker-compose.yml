@@ -8,15 +8,15 @@ services:
     container_name: laravel_app
     volumes:
       - .:/var/www
-      - ./.env:/var/www/.env              # Mount the .env file properly
     ports:
-      - "8888:9000"                        # Host 8888 → Container 9000
+      - "8888:9000"
     environment:
-      - DB_HOST=34.121.54.220             # Cloud SQL public IP
+      - DB_HOST=34.121.54.220
       - DB_PORT=3306
       - DB_DATABASE=nandvanshi
       - DB_USERNAME=root
       - DB_PASSWORD=
+    restart: unless-stopped
 
   composer:
     image: composer:latest
@@ -24,5 +24,16 @@ services:
     working_dir: /var/www
     volumes:
       - .:/var/www
+    restart: unless-stopped
 
-# Removed mysql container since Cloud SQL is being used
+  nginx:
+    image: nginx:alpine
+    container_name: laravel_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    restart: unless-stopped

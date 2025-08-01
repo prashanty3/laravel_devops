@@ -5,39 +5,32 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laravel-app
+    image: laravel-app
+    container_name: app
     restart: unless-stopped
     volumes:
       - .:/var/www
-    networks:
-      - laravel
+    working_dir: /var/www
     depends_on:
-      - composer
-
-  webserver:
-    image: nginx:alpine
-    container_name: nginx
-    restart: unless-stopped
+      - mysql
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
     ports:
-      - "8000:80"
-    volumes:
-      - .:/var/www
-      - ./nginx/conf.d:/etc/nginx/conf.d
-    depends_on:
-      - app
-    networks:
-      - laravel
+      - "8888:8888"
+    command: php artisan serve --host=0.0.0.0 --port=8888
 
-  composer:
-    image: composer:2
-    container_name: composer
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: nandvanshi
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
     volumes:
-      - .:/app
-    working_dir: /app
-    command: install
-    networks:
-      - laravel
+      - dbdata:/var/lib/mysql
 
-networks:
-  laravel:
-    driver: bridge
+volumes:
+  dbdata:

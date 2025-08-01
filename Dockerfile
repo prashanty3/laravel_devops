@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
 # Install Composer globally
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy existing application directory
+# Copy existing application directory contents
 COPY . .
 
 # Expose port 9000 and start php-fpm server

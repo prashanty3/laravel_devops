@@ -22,6 +22,12 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                sh 'docker-compose run --rm composer install'
+            }
+        }
+
         stage('Run Tests') {
             steps {
                 sh 'docker-compose run --rm app php artisan test'
@@ -31,8 +37,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                docker-compose down
-                docker-compose up -d
+                    docker-compose down
+                    docker-compose up -d
                 '''
             }
         }

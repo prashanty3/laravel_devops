@@ -20,17 +20,13 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+# Add user for Laravel application
+RUN groupadd -g 1000 www && useradd -u 1000 -ms /bin/bash -g www www
 
-# Copy existing application directory contents
-COPY . .
-
-# Copy existing application directory permissions
+# Copy code with proper permissions
 COPY --chown=www:www . .
 
-# Change current user to www
+# Use non-root user
 USER www
 
 EXPOSE 9000

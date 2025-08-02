@@ -21,21 +21,25 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Images') {
             steps {
-                script {
-                    docker.build("${DOCKER_REGISTRY}/${APP_NAME}:${env.BUILD_ID}")
-                }
+                sh 'docker-compose build'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'docker-compose run --rm app composer install --no-interaction --prefer-dist --optimize-autoloader'
+                sh 'docker-compose run --rm composer install --no-interaction --prefer-dist --optimize-autoloader'
             }
         }
 
-        stage('Generate Key') {
+        stage('Set Permissions') {
+            steps {
+                sh 'docker-compose run --rm app chmod -R ug+w storage bootstrap/cache'
+            }
+        }
+
+        stage('Generate App Key') {
             steps {
                 sh 'docker-compose run --rm app php artisan key:generate --force'
             }
@@ -49,9 +53,6 @@ pipeline {
                 docker-compose run --rm app php artisan view:clear
                 docker-compose run --rm app php artisan route:clear
 
-                docker-compose run --rm app php artisan cache:table || true
-                docker-compose run --rm app php artisan session:table || true
-                docker-compose run --rm app php artisan queue:table || true
                 docker-compose run --rm app php artisan migrate --force
                 '''
             }

@@ -8,7 +8,8 @@ pipeline {
   stages {
     stage('Clone Repository') {
       steps {
-        git url: 'https://github.com/prashanty3/laravel_devops.git'
+        git branch: 'main', url: 'https://github.com/prashanty3/laravel_devops.git'
+
       }
     }
 

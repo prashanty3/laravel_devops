@@ -45,7 +45,7 @@ pipeline {
 
         stage('Run Migrations & Seed') {
             steps {
-                sh 'docker-compose exec -T app php artisan migrate --seed'
+                sh 'docker-compose exec -T app php artisan migrate --seed --force'
             }
         }
 

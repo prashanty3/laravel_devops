@@ -1,33 +1,39 @@
 FROM php:8.2-fpm
 
-# Set working directory
-WORKDIR /var/www
-
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    zip \
-    unzip \
-    libzip-dev \
+    build-essential \
     libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd
+    zip \
+    unzip \
+    curl \
+    git \
+    sqlite3 \
+    libsqlite3-dev \
+    npm
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd xml
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Add user for Laravel application
-RUN groupadd -g 1000 www && useradd -u 1000 -ms /bin/bash -g www www
+WORKDIR /var/www
 
-# Copy code with proper permissions
-COPY --chown=www:www . .
+COPY . .
 
-# Use non-root user
-USER www
+RUN composer install
+RUN npm install && npm run build
 
+# Set permissions
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# Expose port
 EXPOSE 9000
+
 CMD ["php-fpm"]

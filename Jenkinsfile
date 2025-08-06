@@ -1,41 +1,62 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    PROJECT_DIR = 'laravel'
-  }
-
-  stages {
-    stage('Clone Repository') {
-      steps {
-        git branch: 'main', url: 'https://github.com/prashanty3/laravel_devops.git'
-
-      }
+    environment {
+        COMPOSER_ALLOW_SUPERUSER = "1"
     }
 
-    stage('Build Docker Containers') {
-      steps {
-        sh 'docker-compose build'
-      }
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/prashanty3/laravel_devops.git', branch: 'main'
+            }
+        }
+
+        stage('Build Docker Containers') {
+            steps {
+                sh 'docker-compose build'
+            }
+        }
+
+        stage('Start Docker Containers') {
+            steps {
+                sh 'docker-compose up -d'
+            }
+        }
+
+        stage('Install Composer Dependencies') {
+            steps {
+                sh 'docker-compose exec -T app composer install'
+            }
+        }
+
+        stage('Install NPM Dependencies') {
+            steps {
+                sh 'docker-compose exec -T app npm install'
+                sh 'docker-compose exec -T app npm run build'
+            }
+        }
+
+        stage('Run Migrations & Seeders') {
+            steps {
+                sh 'docker-compose exec -T app php artisan migrate --seed'
+            }
+        }
+
+        stage('Laravel Ready') {
+            steps {
+                echo 'Laravel app is up and running!'
+            }
+        }
     }
 
-    stage('Run Migrations & Seeders') {
-      steps {
-        sh 'docker-compose run --rm app php artisan migrate --force'
-        sh 'docker-compose run --rm app php artisan db:seed --class=SiteContentSeeder'
-      }
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
     }
-
-    stage('Start Laravel Server') {
-      steps {
-        sh 'docker-compose up -d'
-      }
-    }
-  }
-
-  post {
-    always {
-      echo 'Pipeline finished.'
-    }
-  }
 }

@@ -1,19 +1,23 @@
-version: '3.8'
-
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: laravel_app
+    working_dir: /var/www
     volumes:
-      - .:/var/www
+      - ./:/var/www
     ports:
       - "8000:8000"
-    working_dir: /var/www
-    command: php artisan serve --host=0.0.0.0 --port=8000
     depends_on:
       - sqlite
+    command: php artisan serve --host=0.0.0.0 --port=8000
 
   sqlite:
     image: nouchka/sqlite3:latest
+    container_name: laravel-sqlite-1
     volumes:
       - ./database:/root/db
+
+volumes:
+  dbdata:

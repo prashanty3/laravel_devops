@@ -2,14 +2,13 @@ pipeline {
     agent any
 
     environment {
-        APP_ENV = 'local'
+        COMPOSE_FILE = 'docker-compose.yml'
     }
 
     stages {
-
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/prashanty3/laravel_devops.git'
+                git 'https://github.com/your-user/your-laravel-repo.git'
             }
         }
 
@@ -19,33 +18,34 @@ pipeline {
             }
         }
 
-        stage('Start Docker Containers') {
+        stage('Start Containers') {
             steps {
                 sh 'docker-compose up -d'
             }
         }
 
-        stage('Wait for Services to Start') {
+        stage('Setup .env File') {
             steps {
-                sh 'sleep 10'
+                // Copy .env.example to .env inside the app container
+                sh 'docker-compose exec -T app cp .env.example .env'
             }
         }
 
-        stage('Install Composer Dependencies') {
+        stage('Install Dependencies') {
             steps {
                 sh 'docker-compose exec -T app composer install'
             }
         }
 
-        stage('Install NPM Dependencies') {
+        stage('Generate Key') {
             steps {
-                sh 'docker-compose exec -T app npm install'
+                sh 'docker-compose exec -T app php artisan key:generate'
             }
         }
 
-        stage('Run Migrations & Seeders') {
+        stage('Run Migrations & Seed') {
             steps {
-                sh 'docker-compose exec -T app php artisan migrate --seed --force'
+                sh 'docker-compose exec -T app php artisan migrate --seed'
             }
         }
 

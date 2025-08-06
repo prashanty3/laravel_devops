@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        COMPOSER_ALLOW_SUPERUSER = "1"
+        APP_ENV = 'local'
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Clone Repository') {
             steps {
-                git url: 'https://github.com/prashanty3/laravel_devops.git', branch: 'main'
+                git branch: 'main', url: 'https://github.com/prashanty3/laravel_devops.git'
             }
         }
 
@@ -25,6 +25,12 @@ pipeline {
             }
         }
 
+        stage('Wait for Services to Start') {
+            steps {
+                sh 'sleep 10'
+            }
+        }
+
         stage('Install Composer Dependencies') {
             steps {
                 sh 'docker-compose exec -T app composer install'
@@ -34,26 +40,25 @@ pipeline {
         stage('Install NPM Dependencies') {
             steps {
                 sh 'docker-compose exec -T app npm install'
-                sh 'docker-compose exec -T app npm run build'
             }
         }
 
         stage('Run Migrations & Seeders') {
             steps {
-                sh 'docker-compose exec -T app php artisan migrate --seed'
+                sh 'docker-compose exec -T app php artisan migrate --seed --force'
             }
         }
 
         stage('Laravel Ready') {
             steps {
-                echo 'Laravel app is up and running!'
+                echo 'Laravel App is ready and running!'
             }
         }
     }
 
     post {
-        always {
-            echo 'Pipeline finished.'
+        success {
+            echo 'Pipeline completed successfully.'
         }
         failure {
             echo 'Pipeline failed.'
